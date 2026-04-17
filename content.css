@@ -1,0 +1,9 @@
+::selection {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+*::-moz-selection {
+  background-color: transparent !important;
+  color: inherit !important;
+}

@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Moodle Quote Sender",
+  "version": "1.1.0",
+  "description": "Ẩn highlight khi chọn text và gửi đoạn được chọn vào conversation Moodle.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["https://utexlms.hcmute.edu.vn/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Moodle Quote Sender",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://utexlms.hcmute.edu.vn/*"],
+      "css": ["content.css"],
+      "js": ["content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

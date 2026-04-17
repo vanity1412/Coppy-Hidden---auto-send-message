@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moodle Quote Sender</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      width: 360px;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+      color: #f8fafc;
+    }
+    .wrap {
+      padding: 16px;
+    }
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+    }
+    .title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .status-badge {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-right: 8px;
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.06);
+    }
+    .status-badge.on { background: #22c55e; }
+    .status-badge.off { background: #ef4444; }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 52px;
+      height: 30px;
+    }
+    .switch input { display: none; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #334155;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      left: 4px;
+      top: 4px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+    .switch input:checked + .slider {
+      background: #4f46e5;
+    }
+    .switch input:checked + .slider::before {
+      transform: translateX(22px);
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #f8fafc;
+      outline: none;
+    }
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    button {
+      flex: 1;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .primary {
+      background: #4f46e5;
+      color: white;
+    }
+    .secondary {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #374151;
+    }
+    .demo {
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(255,255,255,0.12);
+      user-select: text;
+    }
+    .hide-selection::selection {
+      background-color: transparent;
+      color: inherit;
+    }
+    .hide-selection::-moz-selection {
+      background-color: transparent;
+      color: inherit;
+    }
+    .conv-status {
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      min-height: 18px;
+    }
+    .conv-status.info { color: #93c5fd; }
+    .conv-status.success { color: #86efac; }
+    .conv-status.error { color: #fca5a5; }
+    .hint {
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.5;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="title">Moodle Quote Sender</div>
+      <p class="subtitle">Ẩn highlight khi bôi đen và gửi đoạn text đã chọn vào conversation Moodle.</p>
+    </div>
+
+    <div class="card">
+      <div class="row" style="margin-bottom: 8px;">
+        <div>
+          <div style="display:flex;align-items:center;font-weight:700;">
+            <span id="statusBadge" class="status-badge on"></span>
+            <span id="statusLabel">Đang hoạt động</span>
+          </div>
+          <div id="statusText" class="subtitle" style="margin-top:6px;">Extension đang bật trên trang hiện tại.</div>
+        </div>
+        <label class="switch" aria-label="Toggle extension">
+          <input id="mainToggle" type="checkbox" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <label for="conversationIdSelect">Chọn Conversation ID</label>
+      <select id="conversationIdSelect" style="width:100%;padding:10px 12px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#f8fafc;outline:none;margin-bottom:10px;">
+        <option value="">-- Chọn ID đã lưu --</option>
+      </select>
+      
+      <label for="conversationIdInput">Hoặc nhập ID mới</label>
+      <input id="conversationIdInput" type="text" placeholder="Nhập Conversation ID, ví dụ 69745" />
+      <div class="btn-row">
+        <button id="saveConvIdBtn" class="primary">Lưu ID</button>
+        <button id="deleteConvIdBtn" class="secondary">Xóa ID đã chọn</button>
+      </div>
+      <div id="convIdStatus" class="conv-status info"></div>
+    </div>
+
+    <div class="card">
+      <div class="title" style="font-size:14px;">Cách dùng</div>
+      <p class="hint">1. Mở đúng trang chat Moodle có sesskey hợp lệ.</p>
+      <p class="hint">2. Lưu Conversation ID ở trên hoặc để extension hỏi khi chưa có ID.</p>
+      <p class="hint">3. Bôi đen đoạn text, extension sẽ tự gửi sau khoảng 0.5 giây.</p>
+      <div id="demoText" class="demo" style="margin-top:10px;">Bôi đen thử đoạn này để kiểm tra hiệu ứng ẩn highlight.</div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
