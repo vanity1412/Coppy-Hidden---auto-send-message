@@ -1,11 +1,10 @@
 const DEFAULTS = {
   enabled: true,
-  lastConversationId: '',
-  conversationIds: []
+  lastConversationId: ''
 };
 
 function ensureDefaults() {
-  chrome.storage.sync.get(['enabled', 'lastConversationId', 'conversationIds'], (result) => {
+  chrome.storage.sync.get(['enabled', 'lastConversationId'], (result) => {
     const updates = {};
 
     if (typeof result.enabled === 'undefined') {
@@ -14,10 +13,6 @@ function ensureDefaults() {
 
     if (typeof result.lastConversationId === 'undefined') {
       updates.lastConversationId = DEFAULTS.lastConversationId;
-    }
-
-    if (typeof result.conversationIds === 'undefined') {
-      updates.conversationIds = DEFAULTS.conversationIds;
     }
 
     if (Object.keys(updates).length > 0) {
@@ -36,12 +31,11 @@ chrome.runtime.onStartup.addListener(() => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getSettings') {
-    chrome.storage.sync.get(['enabled', 'lastConversationId', 'conversationIds'], (result) => {
+    chrome.storage.sync.get(['enabled', 'lastConversationId'], (result) => {
       sendResponse({
         success: true,
         enabled: result.enabled !== false,
-        lastConversationId: result.lastConversationId || '',
-        conversationIds: result.conversationIds || []
+        lastConversationId: result.lastConversationId || ''
       });
     });
     return true;
@@ -50,20 +44,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'saveConversationId') {
     const conversationId = String(request.conversationid || '').trim();
 
-    chrome.storage.sync.get(['conversationIds'], (result) => {
-      let ids = result.conversationIds || [];
-      
-      // Thêm ID mới nếu chưa có trong danh sách
-      if (!ids.includes(conversationId)) {
-        ids.push(conversationId);
-      }
-      
-      chrome.storage.sync.set({ 
-        lastConversationId: conversationId,
-        conversationIds: ids
-      }, () => {
-        sendResponse({ success: true, conversationid: conversationId });
-      });
+    chrome.storage.sync.set({ lastConversationId: conversationId }, () => {
+      sendResponse({ success: true, conversationid: conversationId });
     });
     return true;
   }

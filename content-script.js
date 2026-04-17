@@ -203,6 +203,36 @@ function parseServerError(result) {
   return '';
 }
 
+function extractConversationIdFromResponse(result) {
+  if (!Array.isArray(result) || result.length === 0) return null;
+
+  const item = result[0];
+  
+  // Thử lấy từ data.conversationid
+  if (item?.data?.conversationid) {
+    return String(item.data.conversationid);
+  }
+  
+  // Thử lấy từ data[0].conversationid
+  if (Array.isArray(item?.data) && item.data[0]?.conversationid) {
+    return String(item.data[0].conversationid);
+  }
+  
+  // Thử lấy từ conversationid trực tiếp
+  if (item?.conversationid) {
+    return String(item.conversationid);
+  }
+  
+  // Thử tìm trong toàn bộ response object
+  const jsonStr = JSON.stringify(item);
+  const match = jsonStr.match(/"conversationid"\s*:\s*(\d+)/);
+  if (match && match[1]) {
+    return match[1];
+  }
+  
+  return null;
+}
+
 async function doSendMessage(selectedText, conversationId, sesskey) {
   const apiUrl = getApiUrl(sesskey);
 
@@ -245,37 +275,14 @@ async function doSendMessage(selectedText, conversationId, sesskey) {
     throw new Error(serverError);
   }
 
-  // Tự động lấy conversation ID từ response và lưu vào danh sách
+  // Tự động lấy conversation ID từ response và lưu lại
   const extractedId = extractConversationIdFromResponse(result);
   if (extractedId && isValidConversationId(extractedId)) {
     console.log('✨ Auto-extracted conversation ID from response:', extractedId);
-    
-    const storage = await getStorageValue(['conversationIds']);
-    let ids = storage.conversationIds || [];
-    
-    if (!ids.includes(extractedId)) {
-      ids.push(extractedId);
-      await setStorageValue({ 
-        lastConversationId: extractedId,
-        conversationIds: ids
-      });
-    } else {
-      await setStorageValue({ lastConversationId: extractedId });
-    }
+    await setStorageValue({ lastConversationId: extractedId });
   } else {
-    // Nếu không extract được, vẫn lưu ID đã dùng vào danh sách
-    const storage = await getStorageValue(['conversationIds']);
-    let ids = storage.conversationIds || [];
-    
-    if (!ids.includes(String(conversationId))) {
-      ids.push(String(conversationId));
-      await setStorageValue({ 
-        lastConversationId: String(conversationId),
-        conversationIds: ids
-      });
-    } else {
-      await setStorageValue({ lastConversationId: String(conversationId) });
-    }
+    // Nếu không extract được, vẫn lưu ID đã dùng
+    await setStorageValue({ lastConversationId: String(conversationId) });
   }
 
   return result;

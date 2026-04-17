@@ -3,10 +3,9 @@ const statusBadge = document.getElementById('statusBadge');
 const statusLabel = document.getElementById('statusLabel');
 const statusText = document.getElementById('statusText');
 const demoText = document.getElementById('demoText');
-const conversationIdSelect = document.getElementById('conversationIdSelect');
 const conversationIdInput = document.getElementById('conversationIdInput');
 const saveConvIdBtn = document.getElementById('saveConvIdBtn');
-const deleteConvIdBtn = document.getElementById('deleteConvIdBtn');
+const clearConvIdBtn = document.getElementById('clearConvIdBtn');
 const convIdStatus = document.getElementById('convIdStatus');
 
 function updateUI(enabled) {
@@ -34,56 +33,22 @@ function isValidConversationId(value) {
   return /^\d+$/.test(String(value || '').trim()) && parseInt(value, 10) > 0;
 }
 
-function loadConversationIds() {
-  chrome.storage.sync.get(['conversationIds', 'lastConversationId'], (result) => {
-    const ids = result.conversationIds || [];
-    const currentId = result.lastConversationId || '';
-
-    // Clear và rebuild select options
-    conversationIdSelect.innerHTML = '<option value="">-- Chọn ID đã lưu --</option>';
-    
-    ids.forEach(id => {
-      const option = document.createElement('option');
-      option.value = id;
-      option.textContent = `ID: ${id}`;
-      if (id === currentId) {
-        option.selected = true;
-      }
-      conversationIdSelect.appendChild(option);
-    });
-
-    if (currentId) {
-      conversationIdInput.value = currentId;
-      setStatus(`Đang dùng Conversation ID: ${currentId}`, 'success');
-    } else if (ids.length > 0) {
-      setStatus(`Có ${ids.length} ID đã lưu. Chọn một ID để sử dụng.`, 'info');
-    } else {
-      setStatus('Chưa có ID nào. Nhập ID mới và bấm "Lưu ID".', 'info');
-    }
-  });
-}
-
-chrome.storage.sync.get(['enabled'], (result) => {
+chrome.storage.sync.get(['enabled', 'lastConversationId'], (result) => {
   const enabled = result.enabled !== false;
   updateUI(enabled);
-  loadConversationIds();
+
+  if (result.lastConversationId) {
+    conversationIdInput.value = result.lastConversationId;
+    setStatus(`Đang dùng Conversation ID: ${result.lastConversationId}`, 'success');
+  } else {
+    setStatus('Chưa lưu Conversation ID. Bạn có thể nhập ở đây hoặc để content script hỏi khi gửi.', 'info');
+  }
 });
 
 toggle.addEventListener('change', () => {
   const enabled = toggle.checked;
   chrome.storage.sync.set({ enabled });
   updateUI(enabled);
-});
-
-conversationIdSelect.addEventListener('change', () => {
-  const selectedId = conversationIdSelect.value;
-  
-  if (selectedId) {
-    conversationIdInput.value = selectedId;
-    chrome.storage.sync.set({ lastConversationId: selectedId }, () => {
-      setStatus(`Đã chọn Conversation ID: ${selectedId}`, 'success');
-    });
-  }
 });
 
 saveConvIdBtn.addEventListener('click', () => {
@@ -94,48 +59,14 @@ saveConvIdBtn.addEventListener('click', () => {
     return;
   }
 
-  chrome.storage.sync.get(['conversationIds'], (result) => {
-    let ids = result.conversationIds || [];
-    
-    // Thêm ID mới nếu chưa có
-    if (!ids.includes(value)) {
-      ids.push(value);
-      chrome.storage.sync.set({ conversationIds: ids, lastConversationId: value }, () => {
-        setStatus(`Đã lưu ID mới: ${value}`, 'success');
-        loadConversationIds();
-      });
-    } else {
-      chrome.storage.sync.set({ lastConversationId: value }, () => {
-        setStatus(`Đã chọn ID: ${value}`, 'success');
-        loadConversationIds();
-      });
-    }
+  chrome.storage.sync.set({ lastConversationId: value }, () => {
+    setStatus(`Đã lưu Conversation ID: ${value}`, 'success');
   });
 });
 
-deleteConvIdBtn.addEventListener('click', () => {
-  const selectedId = conversationIdSelect.value;
-  
-  if (!selectedId) {
-    setStatus('Chọn một ID từ danh sách để xóa.', 'error');
-    return;
-  }
-
-  chrome.storage.sync.get(['conversationIds', 'lastConversationId'], (result) => {
-    let ids = result.conversationIds || [];
-    ids = ids.filter(id => id !== selectedId);
-    
-    const updates = { conversationIds: ids };
-    
-    // Nếu đang dùng ID này thì clear lastConversationId
-    if (result.lastConversationId === selectedId) {
-      updates.lastConversationId = '';
-      conversationIdInput.value = '';
-    }
-    
-    chrome.storage.sync.set(updates, () => {
-      setStatus(`Đã xóa ID: ${selectedId}`, 'info');
-      loadConversationIds();
-    });
+clearConvIdBtn.addEventListener('click', () => {
+  conversationIdInput.value = '';
+  chrome.storage.sync.set({ lastConversationId: '' }, () => {
+    setStatus('Đã xóa Conversation ID đã lưu.', 'info');
   });
 });
