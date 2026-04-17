@@ -152,6 +152,22 @@
       line-height: 1.5;
       margin: 0;
     }
+    .quick-id-btn {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #4f46e5;
+      border-radius: 10px;
+      background: #1e1b4b;
+      color: #a5b4fc;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+    .quick-id-btn:hover {
+      background: #4f46e5;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -178,16 +194,18 @@
     </div>
 
     <div class="card">
-      <label for="conversationIdSelect">Chọn Conversation ID</label>
-      <select id="conversationIdSelect" style="width:100%;padding:10px 12px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#f8fafc;outline:none;margin-bottom:10px;">
-        <option value="">-- Chọn ID đã lưu --</option>
-      </select>
+      <label>Chọn nhanh Conversation ID</label>
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button class="quick-id-btn" data-id="44137">44137</button>
+        <button class="quick-id-btn" data-id="69745">69745</button>
+        <button class="quick-id-btn" data-id="111155">111155</button>
+      </div>
       
-      <label for="conversationIdInput">Hoặc nhập ID mới</label>
-      <input id="conversationIdInput" type="text" placeholder="Nhập Conversation ID, ví dụ 69745" />
+      <label for="conversationIdInput">Hoặc nhập ID khác</label>
+      <input id="conversationIdInput" type="text" placeholder="Nhập Conversation ID" />
       <div class="btn-row">
         <button id="saveConvIdBtn" class="primary">Lưu ID</button>
-        <button id="deleteConvIdBtn" class="secondary">Xóa ID đã chọn</button>
+        <button id="clearConvIdBtn" class="secondary">Xóa ID</button>
       </div>
       <div id="convIdStatus" class="conv-status info"></div>
     </div>

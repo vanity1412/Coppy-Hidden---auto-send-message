@@ -40,12 +40,12 @@ Có 3 cách để lấy Conversation ID:
 3. Chuyển sang tab **Elements**
 4. Nhấn `Ctrl+F` để mở tìm kiếm
 5. Tìm kiếm: `data-conversation-id`
-6. Copy số ID xuất hiện (ví dụ: 69745)
+6. Copy số ID xuất hiện (ví dụ: xxxxx)
 7. Mở popup extension và paste ID vào ô input
 8. Click "Lưu ID"
 
 ![Hướng dẫn lấy ID](manual.png)
-
+data-conversation-id
 #### Cách 3: Nhập thủ công khi gửi
 - Nếu extension không tìm thấy ID, sẽ hiện popup yêu cầu nhập
 - Nhập ID và click "Lưu & gửi"
@@ -80,9 +80,9 @@ Có 3 cách để lấy Conversation ID:
 │  [-- Chọn ID đã lưu --        ▼]    │
 │                                     │
 │  Hoặc nhập ID mới                   │
-│  [69745                        ]    │
+│  [xxxxx                        ]    │
 │  [Lưu ID] [Xóa ID đã chọn]         │
-│  ✓ Đang dùng Conversation ID: 69745 │
+│  ✓ Đang dùng Conversation ID: xxxxx │
 └─────────────────────────────────────┘
 ```
 

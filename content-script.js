@@ -1,7 +1,6 @@
 let selectionMarker = null;
 let sendTimeout = null;
 let isSending = false;
-let inlineInputBar = null;
 let lastSelectionFingerprint = '';
 
 function removeMarkers() {
@@ -94,91 +93,6 @@ async function getConversationId() {
   }
 
   return '';
-}
-
-function closeInlineBar() {
-  if (inlineInputBar) {
-    inlineInputBar.remove();
-    inlineInputBar = null;
-  }
-}
-
-function showInlineConvIdBar(onConfirm) {
-  if (inlineInputBar) return;
-
-  const bar = document.createElement('div');
-  bar.id = '__moodle_ext_convid_bar__';
-  bar.style.cssText = [
-    'position: fixed',
-    'right: 20px',
-    'bottom: 20px',
-    'z-index: 2147483647',
-    'width: 320px',
-    'padding: 14px',
-    'border-radius: 14px',
-    'background: #111827',
-    'border: 1px solid #4f46e5',
-    'box-shadow: 0 12px 36px rgba(0,0,0,0.35)',
-    'font-family: Arial, sans-serif',
-    'color: #f9fafb'
-  ].join(';');
-
-  bar.innerHTML = `
-    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Nhập Conversation ID</div>
-    <div style="font-size:12px;line-height:1.45;color:#cbd5e1;margin-bottom:10px;">
-      Không tìm thấy ID tự động. Mở đúng đoạn chat Moodle hoặc nhập tay Conversation ID rồi bấm Lưu &amp; gửi.
-    </div>
-    <div style="display:flex;gap:8px;">
-      <input id="__ext_convid_input__" type="text" placeholder="Ví dụ: 69745"
-        style="flex:1;padding:9px 10px;border-radius:10px;border:1px solid #374151;background:#0f172a;color:#fff;outline:none;font-size:13px;" />
-      <button id="__ext_convid_save__"
-        style="padding:9px 12px;border:none;border-radius:10px;background:#4f46e5;color:#fff;font-weight:600;cursor:pointer;">
-        Lưu &amp; gửi
-      </button>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;">
-      <div id="__ext_convid_msg__" style="font-size:12px;min-height:16px;color:#93c5fd;"></div>
-      <button id="__ext_convid_close__"
-        style="padding:6px 10px;border:none;border-radius:8px;background:#1f2937;color:#cbd5e1;cursor:pointer;">
-        Đóng
-      </button>
-    </div>
-  `;
-
-  document.body.appendChild(bar);
-  inlineInputBar = bar;
-
-  const input = bar.querySelector('#__ext_convid_input__');
-  const saveBtn = bar.querySelector('#__ext_convid_save__');
-  const closeBtn = bar.querySelector('#__ext_convid_close__');
-  const msg = bar.querySelector('#__ext_convid_msg__');
-
-  input.focus();
-
-  async function handleSave() {
-    const value = input.value.trim();
-
-    if (!isValidConversationId(value)) {
-      msg.style.color = '#fca5a5';
-      msg.textContent = 'Conversation ID phải là số dương.';
-      return;
-    }
-
-    msg.style.color = '#86efac';
-    msg.textContent = 'Đã lưu ID. Đang gửi...';
-
-    await setStorageValue({ lastConversationId: value });
-    closeInlineBar();
-    onConfirm(value);
-  }
-
-  saveBtn.addEventListener('click', handleSave);
-  input.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      handleSave();
-    }
-  });
-  closeBtn.addEventListener('click', closeInlineBar);
 }
 
 function getApiUrl(sesskey) {
@@ -300,26 +214,14 @@ async function sendSelectedTextMessage(selectedText) {
 
   const sesskey = extractSessionKey();
   if (!sesskey) {
-    alert('Không tìm thấy sesskey. Hãy mở đúng trang chat/conversation Moodle rồi thử lại.');
+    console.error('❌ Không tìm thấy sesskey. Hãy mở đúng trang chat/conversation Moodle rồi thử lại.');
     return;
   }
 
   let conversationId = await getConversationId();
 
   if (!conversationId) {
-    showInlineConvIdBar(async (manualId) => {
-      try {
-        isSending = true;
-        await doSendMessage(normalizedText, manualId, sesskey);
-        lastSelectionFingerprint = currentFingerprint;
-        console.log('✅ Tin nhắn đã gửi thành công bằng ID nhập tay.');
-      } catch (error) {
-        console.error('❌ Error sending with manual ID:', error);
-        alert(`Lỗi gửi tin: ${error.message}`);
-      } finally {
-        isSending = false;
-      }
-    });
+    console.error('❌ Không tìm thấy Conversation ID. Vui lòng lưu ID trong popup extension.');
     return;
   }
 
@@ -329,8 +231,7 @@ async function sendSelectedTextMessage(selectedText) {
     lastSelectionFingerprint = currentFingerprint;
     console.log('✅ Tin nhắn đã gửi thành công.');
   } catch (error) {
-    console.error('❌ Error sending message:', error);
-    alert(`Lỗi gửi tin: ${error.message}`);
+    console.error('❌ Lỗi gửi tin nhắn:', error.message, error);
   } finally {
     isSending = false;
   }
@@ -382,7 +283,7 @@ function handleSelectionChange() {
 
   sendTimeout = setTimeout(() => {
     sendSelectedTextMessage(selectedText);
-  }, 500);
+  }, 150);
 }
 
 document.addEventListener('selectionchange', handleSelectionChange);

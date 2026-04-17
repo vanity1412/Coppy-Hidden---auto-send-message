@@ -7,6 +7,7 @@ const conversationIdInput = document.getElementById('conversationIdInput');
 const saveConvIdBtn = document.getElementById('saveConvIdBtn');
 const clearConvIdBtn = document.getElementById('clearConvIdBtn');
 const convIdStatus = document.getElementById('convIdStatus');
+const quickIdBtns = document.querySelectorAll('.quick-id-btn');
 
 function updateUI(enabled) {
   toggle.checked = enabled;
@@ -68,5 +69,15 @@ clearConvIdBtn.addEventListener('click', () => {
   conversationIdInput.value = '';
   chrome.storage.sync.set({ lastConversationId: '' }, () => {
     setStatus('Đã xóa Conversation ID đã lưu.', 'info');
+  });
+});
+
+quickIdBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.getAttribute('data-id');
+    conversationIdInput.value = id;
+    chrome.storage.sync.set({ lastConversationId: id }, () => {
+      setStatus(`Đã lưu Conversation ID: ${id}`, 'success');
+    });
   });
 });
